@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siddhant Library</title>
+    <style>
+        body {
+            background-color: black;
+            color: rgb(255, 250, 250);
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            color: rgb(29, 255, 29);
+        }
+        button {
+            background-color: rgb(29, 255, 29);
+            color: rgb(0, 0, 0);
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .book-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .book-container img {
+            width: 150px;
+            height: 200px;
+            object-fit: cover;
+        }
+        #books-list {
+            margin-top: 20px;
+            display: none;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: rgb(29, 255, 29);
+        }
+        #book-details {
+            margin-top: 20px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .search-box input {
+    padding: 10px;
+    font-size: 16px;
+    background-color: black; /* Change background to black */
+    color: white; /* Change text color to white for contrast */
+    border: 1px solid green; /* Optional: adds green border */
+    width: 100%; /* Makes the search bar full width */
+    max-width: 600px; /* Optional: set a max width to keep it from becoming too wide */
+    margin: 0 auto; /* Centers the search bar */
+}
+
+        .search-box input {
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Siddhant Library</h1>
+
+    <!-- Search bar -->
+    <div class="search-box">
+        <input type="text" id="search-query" placeholder="Search for a book...">
+    </div>
+
+    <!-- Buttons for actions -->
+    <div>
+        <button onclick="addBook()">Add Book</button>
+        <button onclick="getBookDetails()">Get Details</button>
+        <button onclick="updateBook()">Update Details</button>
+        <button onclick="deleteBook()">Delete Book</button>
+        <button onclick="toggleBooks()">See All Books</button>
+    </div>
+
+    <!-- Book images -->
+    <div class="book-container">
+        <img src="https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQS0w9CjvN5Zb1DHuWPBCC1FpDeTLE2nvNOf2jEGx_Midux-T_OnbxEhI0Qhm7420uxSwnLSxNQlWHI1oVxxvQBgYxd40z-K8p53QKljisM&usqp=CAE" alt="Book 1">
+        <img src="https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTRMTCizb9ogfgMzr6aFIVb5g4sEwhCURkNrZV9brfYL3gkRicfbw35v9wTSM2YGLAjtF1YrWk4XK_6wCfo_Ezpx9gwE_VVxLEziwOv1OTQ8ZuBLy1X8b-V&usqp=CAE" alt="Book 2">
+        <img src="https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcShb29NjQ_hccuvnL-g_eZIFVleLCdodgxpuFZnounw2zyw32A7oMOdtqu9K2vG7OdKXnrtSIXjcoJQmRWu-raynBL-csqDjEcrA_aMsi0gen0N1GFJKVcxag&usqp=CAE" alt="Book 3">
+    </div>
+
+    <!-- Books List -->
+    <div id="books-list"></div>
+
+    <!-- Book Details -->
+    <div id="book-details"></div>
+
+    <!-- Footer -->
+    <footer>
+        Developed by Siddhant Kochhar<br>
+        Email: siddhant.kochhar1@gmail.com
+    </footer>
+
+    <script>
+        // Show all books when "See All Books" button is clicked
+        function toggleBooks() {
+            const booksList = document.getElementById("books-list");
+            if (booksList.style.display === "none") {
+                booksList.style.display = "block";
+                fetchAllBooks();
+            } else {
+                booksList.style.display = "none";
+            }
+        }
+
+        // Fetch all books from the backend and display them
+        async function fetchAllBooks() {
+            const response = await fetch("http://localhost:8000/books/details");
+            const books = await response.json();
+
+            const booksList = document.getElementById("books-list");
+            booksList.innerHTML = ""; // Clear previous books
+
+            books.forEach(book => {
+                const bookDiv = document.createElement("div");
+                bookDiv.innerHTML = `
+                    <h3>${book.book_title}</h3>
+                    <p>Author: ${book.author_name}</p>
+                    <p>Genre: ${book.genre}</p>
+                    <p>Copies Available: ${book.copies_available}</p>
+                `;
+                booksList.appendChild(bookDiv);
+            });
+        }
+
+        // Add a book
+        async function addBook() {
+            const title = prompt("Enter Book Title:");
+            const author = prompt("Enter Author Name:");
+            const genre = prompt("Enter Genre:");
+            const publicationDate = prompt("Enter Publication Date:");
+            const copies = prompt("Enter Copies Available:");
+
+            const response = await fetch("http://localhost:8000/books/add_books", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    book_title: title,
+                    author_name: author,
+                    genre: genre,
+                    publication_date: publicationDate,
+                    copies_available: parseInt(copies)
+                })
+            });
+
+            const result = await response.json();
+            alert(result.msg);
+        }
+
+        // Get details of a specific book
+        async function getBookDetails() {
+            const bookId = prompt("Enter Book ID:");
+            const response = await fetch(`http://localhost:8000/books/details/${bookId}`);
+            const book = await response.json();
+
+            const detailsDiv = document.getElementById("book-details");
+            detailsDiv.innerHTML = `
+                <h2>Book Details</h2>
+                <p>Title: ${book.book_title}</p>
+                <p>Author: ${book.author_name}</p>
+                <p>Genre: ${book.genre}</p>
+                <p>Publication Date: ${book.publication_date}</p>
+                <p>Copies Available: ${book.copies_available}</p>
+            `;
+        }
+
+        // Update book details
+        async function updateBook() {
+            const bookId = prompt("Enter Book ID to Update:");
+            const title = prompt("Enter New Book Title:");
+            const author = prompt("Enter New Author Name:");
+            const genre = prompt("Enter New Genre:");
+            const publicationDate = prompt("Enter New Publication Date:");
+            const copies = prompt("Enter New Copies Available:");
+
+            const response = await fetch(`http://localhost:8000/books/update_details/${bookId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    book_title: title,
+                    author_name: author,
+                    genre: genre,
+                    publication_date: publicationDate,
+                    copies_available: parseInt(copies)
+                })
+            });
+
+            const result = await response.json();
+            alert(result.msg);
+        }
+
+        // Delete a book
+        async function deleteBook() {
+            const bookId = prompt("Enter Book ID to Delete:");
+            const response = await fetch(`http://localhost:8000/books/delete_details/${bookId}`, {
+                method: "DELETE"
+            });
+
+            const result = await response.json();
+            alert(result.msg);
+        }
+    </script>
+</body>
+</html>
